@@ -19,15 +19,20 @@ class Vehicle(db.Model):
         self.lisence_plate = lisence_plate
         self.axle_count = axle_count
         self.height = height
-     
+  
+    def __str__(self):
+        return f"Vehicle: {self.lisence_plate} {self.axle_count} {self.height}"
+       
     @classmethod 
     def insert(cls, lisence_plate, axle_count, height):
         try: 
+            print("Inserting vehicle", lisence_plate, axle_count, height)
             vehicle = cls(lisence_plate, axle_count, height)
             db.session.add(vehicle)
             db.session.commit()
             return vehicle
         except Exception as e: 
+            print("Error inserting vehicle", e)
             return e
     
     @classmethod
@@ -36,6 +41,7 @@ class Vehicle(db.Model):
             # add try/catch blocks for error handling
             return cls.query.filter_by(lisence_plate=license_plate).first()
         except Exception as e: 
+            print(e)
             return e
        
         
