@@ -6,7 +6,6 @@ vehicle_bp = Blueprint('vehicle_bp', __name__) # define blueprint for applicatio
 
 @vehicle_bp.route('/') # define route to access from web interface 
 def main(): 
-    ps = ProcessingService() # define ProcessingService object to process byte data 
     
     endian = None # Replace here to retrieve endianness from client app 
     
@@ -18,6 +17,8 @@ def main():
     r_bigendian = bytes([0x00, 0x08, 0x02, 0x41, 0x42, 0x43, 0x31, 0x32, 0x33, 0x34, 0x20, 0x20, 0x20])
     r_littleendian = bytes([0x08, 0x00, 0x02, 0x41, 0x42, 0x43, 0x31, 0x32, 0x33, 0x34, 0x20, 0x20, 0x20])
     
+    ps = ProcessingService() # define ProcessingService object to process byte data 
+
     ans = ps.process(i_bigendian, 'big') # Process data 
     
     print(ans)

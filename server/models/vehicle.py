@@ -7,7 +7,7 @@ class Vehicle(db.Model):
     __tablename__ = 'vehicles' 
     
     id = db.Column(db.Integer, primary_key=True) # even though vehicle passage records are not unique, the vehicle id is unique, 
-    # i am including a PK for database management. Alternative could be to use timestamps, or just not using a PK at all. 
+    # i am including a PK for database management.
     
     # plate name must have a length of 10. Length verification is done prior to insertion. 
     licence_plate = db.Column(db.String(10)) 
@@ -38,12 +38,12 @@ class Vehicle(db.Model):
         except Exception as e: 
             print(e)
             error_bytes = str(e).encode('utf-8') # encode error into bytes
-            return ErrorService.packageErrorResponse(error_code=255, error=error_bytes)
+            return ErrorService.packageErrorResponse(error_code=500, error=error_bytes)
     
     @classmethod
     def retrieve(cls, licence_plate, endian): 
         try: 
-            # retrieve latest record 
+            # retrieve latest record based on timestap 
             vehicle = cls.query.filter_by(licence_plate=licence_plate).order_by(cls.created_at.desc()).first()
             
             if vehicle is None: 
