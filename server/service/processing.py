@@ -1,6 +1,5 @@
 from models.vehicle import Vehicle
 from service.error import ErrorService
-from service.byte_conversion import ByteConversion 
 
 import re 
 class ProcessingService:
