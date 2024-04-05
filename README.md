@@ -46,6 +46,9 @@ with your credentials.
 # Navigate to the project directory
 cd server
 
+# install dependencies 
+pip install -r requirements.txt
+
 # Run the development server 
 flask run 
 ```
