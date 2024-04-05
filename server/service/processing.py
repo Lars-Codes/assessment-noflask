@@ -1,20 +1,25 @@
 from models.vehicle import Vehicle
 from service.error import ErrorService
+from service.byte_conversion import ByteConversion 
 
 import re 
 class ProcessingService:
     
     type = None
-    lisence_plate = None
+    licence_plate = None
     axle_count = None
     height = None
     length = None 
     
     response_package = None 
     
+    endian = None 
+    
     binary_data = bytes() # initializing empty byte array  
     
-    def process(self, data):
+    def process(self, data, endian=None): 
+        self.endian = endian
+        
         self.retrieve_data(data) # assign binary_data attribute  
         request_type = self.getType() # process request type 
        
@@ -26,19 +31,19 @@ class ProcessingService:
         if(isinstance(plate, bytes)): # if request type is an error message, return error message
             return plate 
         
-        if(request_type == 1): # insert 
+        if(self.type == 1): # insert 
             self.processDataForInsert() # process axel / height 
-            res = Vehicle.insert(self.lisence_plate, self.axle_count, self.height) # insert into database
+            res = Vehicle.insert(self.licence_plate, self.axle_count, self.height) # insert into database
             return res 
         
-        elif(request_type == 2): # retrieve 
-            vehicle = Vehicle.retrieve(self.lisence_plate) # retrieve from database
+        elif(self.type == 2): # retrieve 
+            vehicle = Vehicle.retrieve(self.licence_plate, self.endian) # retrieve from database
             return vehicle 
         else: 
             return ErrorService.packageErrorResponse(error_code=255, error="Invalid request type".encode('utf-8'))
         
     def retrieve_data(self, data):  
-        # self.binary_data = bytes(data) # using bytes and not bytearray because bytes type is immutable 
+        # using bytes and not bytearray because bytes type is immutable 
         if(type(data)!=bytes): 
             self.binary_data = bytes(data)
         else: 
@@ -50,18 +55,13 @@ class ProcessingService:
         self.type = request_type
             
     def processLength(self): 
-        # get the length from binary data
-        # if length of message is not consistent with the length of the binary data, throw an error
+        data_length = len(self.binary_data) - 2 # get the length of the data 
         
-        # USE FOR BIG ENDIAN 
-        specified_length = int.from_bytes(self.binary_data[:2], byteorder='big') # get the first two bytes for length. 
+        if(self.endian == None): 
+            self.detectEndianness(data_length)
+            
+        specified_length = int.from_bytes(self.binary_data[:2], byteorder=self.endian)
         
-        # USE FOR LITTLE ENDIAN 
-        # specified_length = int.from_bytes(self.binary_data[:2], byteorder='little') # get the first two bytes for length. 
-        
-        data_length = len(self.binary_data) - 2 # get the length of the data
-        
-         # if the specified length is not equal to the actual length, throw error
         if(specified_length != data_length): 
             return ErrorService.packageErrorResponse(error_code=255, error="Specified length does not match length of data".encode('utf-8'))
         
@@ -76,7 +76,7 @@ class ProcessingService:
         isAlphanumeric = bool(re.match(pattern, lp))
         
         if(isAlphanumeric): 
-            self.lisence_plate = lp
+            self.licence_plate = lp
             return 0 
         else: 
             return ErrorService.packageErrorResponse(error_code=255, error="License plate must be alphanumeric".encode('utf-8'))
@@ -85,14 +85,22 @@ class ProcessingService:
     # process axel count + height 
     def processDataForInsert(self): 
         # BIG ENDIAN 
-        self.axle_count = int.from_bytes(self.binary_data[13:15], byteorder='big') # get the first two bytes for length. 
-        self.height = int.from_bytes(self.binary_data[-2:], byteorder='big') # get the first two bytes for length. 
+        self.axle_count = int.from_bytes(self.binary_data[13:15], byteorder=self.endian) # get the first two bytes for length. 
+        self.height = int.from_bytes(self.binary_data[-2:], byteorder=self.endian) # get the first two bytes for length. 
         
-        # LITTLE ENDIAN 
-        # axels = int.from_bytes(self.binary_data[13:15], byteorder='little') # get the first two bytes for length. 
-        # height = int.from_bytes(self.binary_data[-2:], byteorder='little') # get the first two bytes for length. 
+    def detectEndianness(self, data_length): 
+        specified_length = int.from_bytes(self.binary_data[:2], byteorder='big') # get the first two bytes for length. 
+        if(specified_length != data_length): 
+            specified_length = int.from_bytes(self.binary_data[:2], byteorder='little') # get the first two bytes for length. 
+            if(specified_length != data_length): 
+                return ErrorService.packageErrorResponse(error_code=255, error="Specified length does not match length of data".encode('utf-8'))
+            else: 
+                self.endian = 'little'
+        else: 
+            self.endian = 'big'
         
-        # throw error if too many axels 
+        return specified_length
+
 
 
     
