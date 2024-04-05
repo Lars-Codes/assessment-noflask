@@ -5,6 +5,5 @@
 .env
 
 ### migrations directory ### 
-migrations / 
 
 # End of https://www.toptal.com/developers/gitignore/api/dotenv

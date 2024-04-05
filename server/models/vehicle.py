@@ -1,4 +1,6 @@
 from models.db import db 
+from  service.error import ErrorService
+from sqlalchemy import Column, DateTime, func
 
 class Vehicle(db.Model):
     # Specify tablename for the model so Flask knows which local mySQL table to reference 
@@ -14,35 +16,49 @@ class Vehicle(db.Model):
     axle_count = db.Column(db.SmallInteger) 
     height = db.Column(db.SmallInteger)
     
+    created_at = Column(DateTime, default=func.now()) # including timestamp to ensure retrieval of LATEST record
+        
     # constructor 
     def __init__(self, lisence_plate, axle_count, height):
         self.lisence_plate = lisence_plate
         self.axle_count = axle_count
         self.height = height
   
+    #toString method 
     def __str__(self):
-        return f"Vehicle: {self.lisence_plate} {self.axle_count} {self.height}"
+        return f"Vehicle: {self.id} {self.lisence_plate} {self.axle_count} {self.height}"
        
     @classmethod 
     def insert(cls, lisence_plate, axle_count, height):
         try: 
-            print("Inserting vehicle", lisence_plate, axle_count, height)
             vehicle = cls(lisence_plate, axle_count, height)
             db.session.add(vehicle)
             db.session.commit()
-            return vehicle
+            return bytes([0x00]) # Response 0 for success 
         except Exception as e: 
-            print("Error inserting vehicle", e)
-            return e
+            print(e)
+            error_bytes = str(e).encode('utf-8') # encode error into bytes
+            return ErrorService.packageErrorResponse(error_code=255, error=error_bytes)
     
     @classmethod
     def retrieve(cls, license_plate): 
         try: 
-            # add try/catch blocks for error handling
-            return cls.query.filter_by(lisence_plate=license_plate).first()
+            # retrieve latest record 
+            vehicle = cls.query.filter_by(lisence_plate=license_plate).order_by(cls.created_at.desc()).first()
+            
+            if vehicle is None: 
+                return ErrorService.packageErrorResponse(error_code=9, error="Vehicle not found".encode('utf-8'))
+            else: 
+                # big endian 
+                return bytes([0x03]) + vehicle.lisence_plate.encode('utf-8') + vehicle.axle_count.to_bytes(2, 'big') + vehicle.height.to_bytes(2, 'big')                
+                # little endian 
+                #return bytes([0x03]) + vehicle.lisence_plate.encode('utf-8') + vehicle.axle_count.to_bytes(2, 'big') + vehicle.height.to_bytes(2, 'big')                
+
         except Exception as e: 
             print(e)
-            return e
+            error_bytes = str(e).encode('utf-8') # encode error into bytes
+            return ErrorService.packageErrorResponse(error_code=9, error=error_bytes)
+
        
         
     
