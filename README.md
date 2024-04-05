@@ -43,11 +43,12 @@ with your credentials.
 
 5. **Start the Development Server**:
 ```bash
-# Terminal 1
 # Navigate to the project directory
 cd server
 
+# Run the development server 
 flask run 
+```
 
 Now, open your browser and follow the link displayed on the frontend server to run the application. 
 
