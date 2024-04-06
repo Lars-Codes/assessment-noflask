@@ -35,7 +35,8 @@ class Vehicle(db.Model):
             vehicle = cls(licence_plate, axle_count, height)
             db.session.add(vehicle)
             db.session.commit()
-            return bytes([0x00, 0x01, 0x00]) # Response 0 for success 
+            size = 1 
+            return size.to_bytes(2, endian) + bytes([0x0]) # Response 0 for success
         except Exception as e: 
             print(e)
             error_bytes = str(e).encode('utf-8') # encode error into bytes

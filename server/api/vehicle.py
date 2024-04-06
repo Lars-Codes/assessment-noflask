@@ -56,13 +56,13 @@ def insert():
     
     ans = ps.process(data, endian) # Process data 
     
-    return ans 
+    return convertResponse(ans, endian)
+
 
 
 def convertToBytes(length=None, query_type=None, lp=None, axels=None, height=None, endian=None): 
     if len(lp) < 10: 
         lp = lp + ' '*(10-len(lp)) # pad with spaces
-        
     if(query_type == 2):
         length = 1 + len(lp) # length is 2 bytes (type) + length of licence plate
             
@@ -71,7 +71,12 @@ def convertToBytes(length=None, query_type=None, lp=None, axels=None, height=Non
         else: # default to big 
             data = length.to_bytes(2, 'big') + query_type.to_bytes(1, 'big') + lp.encode('ascii')
     else: 
-        pass 
+        length = 15 
+        type = 1 
+        if(endian): 
+            data = length.to_bytes(2, endian) + type.to_bytes(1, endian) + lp.encode('ascii') + int(axels).to_bytes(2, endian) + int(height).to_bytes(2, endian)
+        else: # default to big
+            data = length.to_bytes(2, 'big') + type.to_bytes(1, 'big') + lp.encode('ascii') + int(axels).to_bytes(2, 'big') + int(height).to_bytes(2, 'big') 
 
     return data 
 
@@ -108,12 +113,17 @@ def convertResponse(data, endian):
             hex_list.append('0x' + format(byte, '02x'))
         
         return "BIN DATA: " + str(hex_list) + "<br><br>" + "<b>DECODED MESSAGE:</b> " + "<br><br>" + "Length of data (bytes): " + str(length) + "<br>" + "Type: " + str(type) + "<br>" + "License Plate: " + plate + "<br>" + "Axels: " + str(axels_int) + "<br>" + "Height: " + str(height_int) + " ft"
-
-    elif(type == 9):
+    elif(type == 9 or type == 255):
         error_message = data[3:].decode('utf-8')
         binary_list = [hex(ord(c)) for c in error_message]        
         hex_list.extend(binary_list)
         return "BIN DATA: " + str(hex_list) + "<br><br>" + "<b>DECODED MESSAGE:</b> " + "<br><br>" + "Length of data (bytes): " + str(length) + "<br>" + "Type (error code): " + str(type) + "<br>" + "Error Description: " + error_message
+    elif(type==0): 
+        return "BIN DATA: " + str(hex_list) + "<br><br>" + "<b>DECODED MESSAGE:</b> " + "<br><br>" + "Length of data (bytes): " + str(length) + "<br>" + "Type: " + str(type) + "<br>" + "Success"
+    
+    # else: 
+    #     error_message = data[3:].decode('utf-8')
+    #     return "BIN DATA: " + str(hex_list) + "<br><br>" + "<b>DECODED MESSAGE:</b> " + "<br><br>" + "Length of data (bytes): " + str(length) + "<br>" + "Type: " + str(type) + "<br>" + "Unknown"
     
     return "test" 
      
