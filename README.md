@@ -53,6 +53,10 @@ pip install -r requirements.txt
 flask run 
 ```
 
-Now, open your browser and follow the link displayed on the frontend server to run the application. 
+Now, open your browser and follow the link displayed on the frontend server to run the application. Click the query button to 
+make a query and the insert button to make an insertion to test the code. Also specify if you would like your data to be 
+processed and returned in big or little endian format. If none is detected, it will default to big endian. 
+
+
 
 

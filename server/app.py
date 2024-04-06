@@ -29,7 +29,6 @@ app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('SQLALCHEMY_DATABASE_URI') # l
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False  
 app.config['DEBUG'] = True  # Enable debug mode
 
-
 db.init_app(app)
 
 # used for database migrations 
