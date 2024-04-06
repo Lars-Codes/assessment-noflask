@@ -5,7 +5,10 @@
 ### Stack
   - Python 
   - Flask 
-  - MySQL 
+  - MySQL
+  - HTML
+  - CSS
+  - JavaScript (vanilla) 
 
 ## Table of Contents
 
