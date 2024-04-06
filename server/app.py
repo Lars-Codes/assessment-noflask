@@ -15,7 +15,7 @@ from api.vehicle import vehicle_bp
 
 from dotenv import load_dotenv
 
-app = Flask(__name__) # define flask app 
+app = Flask(__name__, template_folder='templates')
 app.config.from_object(__name__) # used to load configuration variables defined in pythn files 
 
 # register blueprint with app 
@@ -27,6 +27,8 @@ load_dotenv()
 app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('SQLALCHEMY_DATABASE_URI') # load database URI from .env file
 # Disable SQLAlchemy modification tracking. Introduces overhead and 
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False  
+app.config['DEBUG'] = True  # Enable debug mode
+
 
 db.init_app(app)
 

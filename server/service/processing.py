@@ -16,6 +16,11 @@ class ProcessingService:
     
     binary_data = bytes() # initializing empty byte array  
     
+    error_code = 255 # default error code
+    
+    def __init__(self):
+        self.error_code = 255 # default error code
+    
     # Main processing functions to call other functions 
     def process(self, data, endian=None): 
         self.endian = endian # store endianness
@@ -23,6 +28,9 @@ class ProcessingService:
         self.retrieve_data(data) # Store data and cast to bytes if not already bytes
         
         request_type = self.getType() # process request type (third byte)
+
+        if(self.type==2): 
+            self.error_code = 9 # set error code to 9 if request type is 2 (retrieve)
        
         length = self.processLength() # process length (first and second bytes) and detect endianness if not specified 
         
@@ -35,14 +43,14 @@ class ProcessingService:
         
         if(self.type == 1): # If type is 1, it is an insert.  
             self.processDataForInsert() # Process bytes that specify the axels / height 
-            res = Vehicle.insert(self.licence_plate, self.axle_count, self.height) # insert into database
+            res = Vehicle.insert(self.licence_plate, self.axle_count, self.height, self.endian) # insert into database
             return res # return response from database -- either success or error
         
         elif(self.type == 2): # If type is 2, it is a retrieve. 
             vehicle = Vehicle.retrieve(self.licence_plate, self.endian) # retrieve from database
             return vehicle # return response from database -- either success with data, or error
         else: # Invalid request type 
-            return ErrorService.packageErrorResponse(error_code=500, error="Invalid request type".encode('utf-8'))
+            return ErrorService.packageErrorResponse(error_code=self.error_code, error="Invalid request type".encode('utf-8'), endian=self.endian)
         
     def retrieve_data(self, data):  
         # using bytes and not bytearray because bytes type is immutable. 
@@ -67,23 +75,26 @@ class ProcessingService:
         # Length is stored in the first two bytes of the binary data. 
         specified_length = int.from_bytes(self.binary_data[:2], byteorder=self.endian)
         
+        if(specified_length != data_length): # If the specified length does not match the length of the data, return error message.
+            return ErrorService.packageErrorResponse(error_code=self.error_code, error="Specified length does not match length of data".encode('utf-8'), endian=self.endian)
+        
         self.length = specified_length # Store length in attribute 
         
         return specified_length
     
     def processPlate(self): 
         # process 10 chars of the string. 
-        lp = self.binary_data[3:13].decode('utf-8').strip() # get the first 10 bytes for the license plate.
-        
+        lp = self.binary_data[3:13].decode('utf-8') # get the first 10 bytes for the license plate.
+                
         # Make sure plate only contains alphanumeric characters 
-        pattern = r'^[a-zA-Z0-9]+$'
+        pattern = r'^[a-zA-Z0-9 ]+$'
         isAlphanumeric = bool(re.match(pattern, lp))
         
         # If not alphanumeric or plate is empty, return error message
         if(not isAlphanumeric): 
-            return ErrorService.packageErrorResponse(error_code=500, error="License plate must be alphanumeric".encode('utf-8'))
+            return ErrorService.packageErrorResponse(error_code=self.error_code, error="License plate must be alphanumeric".encode('utf-8'), endian=self.endian)
         elif(lp == '          '): 
-            return ErrorService.packageErrorResponse(error_code=500, error="License plate cannot be empty".encode('utf-8'))
+            return ErrorService.packageErrorResponse(error_code=self.error_code, error="License plate cannot be empty".encode('utf-8'), endian=self.endian)
 
         self.licence_plate = lp
         return 0 
@@ -98,7 +109,7 @@ class ProcessingService:
         if(specified_length != data_length): # If the specified length does not match the length of the data, try to convert using little endian order.
             specified_length = int.from_bytes(self.binary_data[:2], byteorder='little') 
             if(specified_length != data_length): # If the specified length does not match the length of the data, return error message.
-                return ErrorService.packageErrorResponse(error_code=500, error="Specified length does not match length of data".encode('utf-8'))
+                return ErrorService.packageErrorResponse(error_code=self.error_code, error="Specified length does not match length of data".encode('utf-8'))
             else: # If it wasn't big but now it matches, endianness must be little. 
                 self.endian = 'little'
         else: # If it matches the big endian order, endianness must be big.
