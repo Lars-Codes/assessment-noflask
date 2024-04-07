@@ -35,7 +35,10 @@ def query():
     
     # Convert data to bytes
     data = convertToBytes(query_type=2, lp=licence_plate, endian=endian)
-        
+    
+    if(data[0] == 0): # if request type is an error message, return error message. 
+        return convertResponse(data[1], endian)  
+    
     ps = ProcessingService() # define ProcessingService object to process byte data 
 
     # Process data for query 
@@ -75,6 +78,8 @@ def convertToBytes(length=None, query_type=None, lp=None, axels=None, height=Non
     
     if len(lp) < 10: 
         lp = lp + ' '*(10-len(lp)) # pad with spaces
+    elif(len(lp) > 10):
+        return [0, ErrorService.packageErrorResponse(error_code=255, error="License plate must be 10 characters or less".encode('utf-8'), endian=endian)]
         
     if(query_type == 2): # Process data for retrieval 
         length = 1 + len(lp) # length is 2 bytes (type) + length of licence plate
