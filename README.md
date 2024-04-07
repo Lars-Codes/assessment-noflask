@@ -37,7 +37,7 @@ server/service/processing.py is responsible for encoding/decoding requests/respo
 server/models/vehicle.py is responsible for database handling. 
 
 ### Prerequisites 
-You must have MySQL installed on your machine. Installation instructions can be found [here]((https://www.mysql.com/)).
+You must have MySQL installed on your machine. Installation instructions can be found [here](https://www.mysql.com/).
 
 
 3. **Create Database**:
