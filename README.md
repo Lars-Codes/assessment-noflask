@@ -51,7 +51,6 @@ FLASK_ENV=development
 FLASK_APP=app.py
 FLASK_RUN_PORT=8000
 SQLALCHEMY_DATABASE_URI=mysql+pymysql://username:password@localhost:3306/database_name
-BASE_URL=http://localhost:8000
 ```
 You may need to adjust the port depending on where MySQL is running on your machine. Update username, password, and database_name 
 with your credentials. 
@@ -63,6 +62,11 @@ cd server
 
 # install dependencies 
 pip install -r requirements.txt
+
+# Initialize database table
+flask db init
+flask db migrate
+flask db upgrade 
 
 # Run the development server 
 flask run 
