@@ -10,18 +10,6 @@
   - CSS
   - JavaScript (vanilla) 
 
-## Table of Contents
-
-- [Project Name](#project-name)
-  - [Table of Contents](#table-of-contents)
-  - [Getting Started](#getting-started)
-    - [Prerequisites](#prerequisites)
-    - [Installation](#installation)
-  - [Usage](#usage)
-  - [Contributing](#contributing)
-  - [License](#license)
-
-
 ## Getting Started
 
 ### Quick explanation 
