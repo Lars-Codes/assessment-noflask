@@ -5,7 +5,10 @@
 ### Stack
   - Python 
   - Flask 
-  - MySQL 
+  - MySQL
+  - HTML
+  - CSS
+  - JavaScript (vanilla) 
 
 ## Table of Contents
 
@@ -21,11 +24,23 @@
 
 ## Getting Started
 
+### Quick explanation 
+There are three main files for the application: 
+1. server/api/vehicle.py (API)
+2. server/service/processing.py (Processing layer)
+3. server/models/vehicle.py (Database handling) 
+
+server/api/vehicle.py is the file that retrieves data from the client applications. The query() function handles queries, and the insert() function handles inserts. Both functions route the data to server/service/processing.py. 
+
+server/service/processing.py is responsible for encoding/decoding requests/responses and returning it to the API or sending it to the model for database insertion. 
+
+server/models/vehicle.py is responsible for database handling. 
+
 ### Prerequisites 
 You must have MySQL installed on your machine. Installation instructions can be found [here]([URL](https://www.mysql.com/)).
 
 
-3. **Create a Users Collection**:
+3. **Create Database**:
 
 To store data for this application, you'll need to create a database to store vehicle data. 
 
@@ -36,7 +51,6 @@ FLASK_ENV=development
 FLASK_APP=app.py
 FLASK_RUN_PORT=8000
 SQLALCHEMY_DATABASE_URI=mysql+pymysql://username:password@localhost:3306/database_name
-BASE_URL=http://localhost:8000
 ```
 You may need to adjust the port depending on where MySQL is running on your machine. Update username, password, and database_name 
 with your credentials. 
@@ -48,6 +62,11 @@ cd server
 
 # install dependencies 
 pip install -r requirements.txt
+
+# Initialize database table
+flask db init
+flask db migrate
+flask db upgrade 
 
 # Run the development server 
 flask run 
