@@ -5,5 +5,10 @@
 .env
 
 ### migrations directory ### 
+**/server/migrations
+
+### compiled code ###
+**/server/__pycache__
+
 
 # End of https://www.toptal.com/developers/gitignore/api/dotenv
