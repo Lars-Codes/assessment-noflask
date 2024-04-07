@@ -23,34 +23,40 @@ class ProcessingService:
     
     # Main processing functions to call other functions 
     def process(self, data, endian=None): 
-        self.endian = endian # store endianness
-        
-        self.retrieve_data(data) # Store data and cast to bytes if not already bytes
-        
-        request_type = self.getType() # process request type (third byte)
+        try: 
+            self.endian = endian # store endianness
+            
+            self.retrieve_data(data) # Store data and cast to bytes if not already bytes
+            
+            request_type = self.getType() # process request type (third byte)
 
-        if(self.type==2): 
-            self.error_code = 9 # set error code to 9 if request type is 2 (retrieve)
-       
-        length = self.processLength() # process length (first and second bytes) and detect endianness if not specified 
+            if(self.type==2): 
+                self.error_code = 9 # set error code to 9 if request type is 2 (retrieve)
         
-        if(isinstance(length, bytes)): # if request type is an error message, return error message. 
-            return length
-        
-        plate = self.processPlate() # process license plate (next 10 bytes)
-        if(isinstance(plate, bytes)): # if request type is an error message, return error message
-            return plate 
-        
-        if(self.type == 1): # If type is 1, it is an insert.  
-            self.processDataForInsert() # Process bytes that specify the axels / height 
-            res = Vehicle.insert(self.licence_plate, self.axle_count, self.height, self.endian) # insert into database
-            return res # return response from database -- either success or error
-        
-        elif(self.type == 2): # If type is 2, it is a retrieve. 
-            vehicle = Vehicle.retrieve(self.licence_plate, self.endian) # retrieve from database
-            return vehicle # return response from database -- either success with data, or error
-        else: # Invalid request type 
-            return ErrorService.packageErrorResponse(error_code=self.error_code, error="Invalid request type".encode('utf-8'), endian=self.endian)
+            length = self.processLength() # process length (first and second bytes) and detect endianness if not specified 
+            
+            if(isinstance(length, bytes)): # if request type is an error message, return error message. 
+                return length
+            
+            plate = self.processPlate() # process license plate (next 10 bytes)
+            if(isinstance(plate, bytes)): # if request type is an error message, return error message
+                return plate 
+            
+            if(self.type == 1): # If type is 1, it is an insert.  
+                data = self.processDataForInsert() # Process bytes that specify the axels / height 
+                if(isinstance(data, bytes)):
+                    return data
+                res = Vehicle.insert(self.licence_plate, self.axle_count, self.height, self.endian) # insert into database
+                return res # return response from database -- either success or error
+            
+            elif(self.type == 2): # If type is 2, it is a retrieve. 
+                vehicle = Vehicle.retrieve(self.licence_plate, self.endian) # retrieve from database
+                return vehicle # return response from database -- either success with data, or error
+            else: # Invalid request type 
+                return ErrorService.packageErrorResponse(error_code=self.error_code, error="Invalid request type".encode('utf-8'), endian=self.endian)
+        except Exception as e: 
+            print(e) 
+            return ErrorService.packageErrorResponse(error_code=self.error_code, error="Error while processing data".encode('utf-8'), endian=self.endian)
         
     def retrieve_data(self, data):  
         # using bytes and not bytearray because bytes type is immutable. 
@@ -101,8 +107,12 @@ class ProcessingService:
 
     # process axel count + height 
     def processDataForInsert(self): 
-        self.axle_count = int.from_bytes(self.binary_data[13:15], byteorder=self.endian) # Process axel count 
-        self.height = int.from_bytes(self.binary_data[-2:], byteorder=self.endian) # Process height 
+        try: 
+            self.axle_count = int.from_bytes(self.binary_data[13:15], byteorder=self.endian) # Process axel count 
+            self.height = int.from_bytes(self.binary_data[-2:], byteorder=self.endian) # Process height 
+            return 0 
+        except Exception as e: 
+            return ErrorService.packageErrorResponse(error_code=self.error_code, error=str(e).encode('utf-8'), endian=self.endian)
         
     def detectEndianness(self, data_length): 
         specified_length = int.from_bytes(self.binary_data[:2], byteorder='big') # get the first two bytes for length. 

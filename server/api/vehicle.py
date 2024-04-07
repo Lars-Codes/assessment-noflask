@@ -1,6 +1,7 @@
 from flask import Blueprint, render_template, request
 from models.vehicle import Vehicle
 from service.processing import ProcessingService
+from service.error import ErrorService
 
 vehicle_bp = Blueprint('vehicle_bp', __name__) # define blueprint for application 
 
@@ -38,7 +39,7 @@ def query():
     ps = ProcessingService() # define ProcessingService object to process byte data 
 
     # Process data for query 
-    ans = ps.process(data, endian) # Process data 
+    ans = ps.process(data[1], endian) # Process data 
 
     # Convert response to human-readable format
     return convertResponse(ans, endian)
@@ -57,17 +58,21 @@ def insert():
     # Convert data to bytes
     data = convertToBytes(query_type=1, lp=licence_plate, axels=axle_count, height=height, endian=endian)
     
+    if(data[0] == 0): # if request type is an error message, return error message. 
+        return convertResponse(data[1], endian)
+    
     # Process data for insert
     ps = ProcessingService()
     
     # Process data for insert
-    ans = ps.process(data, endian) # Process data 
+    ans = ps.process(data[1], endian) # Process data 
     
     # Convert response to human-readable format
     return convertResponse(ans, endian)
 
 
 def convertToBytes(length=None, query_type=None, lp=None, axels=None, height=None, endian=None): 
+    
     if len(lp) < 10: 
         lp = lp + ' '*(10-len(lp)) # pad with spaces
         
@@ -79,13 +84,19 @@ def convertToBytes(length=None, query_type=None, lp=None, axels=None, height=Non
             data = length.to_bytes(2, 'big') + query_type.to_bytes(1, 'big') + lp.encode('ascii')
     else: # process data for insertion 
         length = 15 
-        type = 1 
-        if(endian): 
-            data = length.to_bytes(2, endian) + type.to_bytes(1, endian) + lp.encode('ascii') + int(axels).to_bytes(2, endian) + int(height).to_bytes(2, endian)
-        else: # default to big
-            data = length.to_bytes(2, 'big') + type.to_bytes(1, 'big') + lp.encode('ascii') + int(axels).to_bytes(2, 'big') + int(height).to_bytes(2, 'big') 
+        data_type = 1 
+        
+        if(not axels or not height):
+            return [0, ErrorService.packageErrorResponse(error_code=255, error="Axels and height must be specified".encode('utf-8'), endian=endian)]
+        elif(not axels.isdigit() or not height.isdigit()):
+            return [0, ErrorService.packageErrorResponse(error_code=255, error="Height and axels must be integers".encode('utf-8'), endian=endian)]
 
-    return data 
+        if(endian): 
+            data = length.to_bytes(2, endian) + data_type.to_bytes(1, endian) + lp.encode('ascii') + int(axels).to_bytes(2, endian) + int(height).to_bytes(2, endian)
+        else: # default to big
+            data = length.to_bytes(2, 'big') + data_type.to_bytes(1, 'big') + lp.encode('ascii') + int(axels).to_bytes(2, 'big') + int(height).to_bytes(2, 'big') 
+
+    return [1, data]
 
 def convertEndianString(string): # Convert string to 'little' or 'big'
     if(string == "Big endian"): 
