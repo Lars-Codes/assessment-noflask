@@ -27,8 +27,7 @@ server/models/vehicle.py is responsible for database handling.
 ### Prerequisites 
 You must have MySQL installed on your machine. Installation instructions can be found [here](https://www.mysql.com/).
 
-
-3. **Create Database**:
+**Create Database**:
 
 To store data for this application, you'll need to create a database to store vehicle data. 
 
@@ -43,7 +42,7 @@ SQLALCHEMY_DATABASE_URI=mysql+pymysql://username:password@localhost:3306/databas
 You may need to adjust the port depending on where MySQL is running on your machine. Update username, password, and database_name 
 with your credentials. 
 
-5. **Start the Development Server**:
+**Start the Development Server**:
 ```bash
 # Navigate to the project directory
 cd server
