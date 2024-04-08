@@ -1,6 +1,5 @@
 from models.vehicle import Vehicle
 from service.error import ErrorService
-
 import re 
 class ProcessingService:
     
@@ -56,6 +55,8 @@ class ProcessingService:
                 return ErrorService.packageErrorResponse(error_code=self.error_code, error="Invalid request type".encode('utf-8'), endian=self.endian)
         except Exception as e: 
             print(e) 
+            if(self.endian==None): 
+                self.endian = 'big'
             return ErrorService.packageErrorResponse(error_code=self.error_code, error="Error while processing data".encode('utf-8'), endian=self.endian)
         
     def retrieve_data(self, data):  
@@ -74,6 +75,7 @@ class ProcessingService:
         data_length = len(self.binary_data) - 2 # get the length of the data (minus 2 bytes that store the length)
         
         if(self.endian == None): # If endianness is not specified, detect it.
+            
             endian = self.detectEndianness(data_length)
             if(isinstance(endian, bytes)): # if request type is an error message, return error message. 
                 return endian

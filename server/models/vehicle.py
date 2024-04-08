@@ -32,7 +32,7 @@ class Vehicle(db.Model):
     @classmethod 
     def insert(cls, licence_plate, axle_count, height, endian):
         try: 
-            vehicle = cls(licence_plate, axle_count, height)
+            vehicle = cls(licence_plate.strip(), axle_count, height)
             db.session.add(vehicle)
             db.session.commit()
             size = 1 
