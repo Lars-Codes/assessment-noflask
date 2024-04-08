@@ -17,7 +17,7 @@ class ProcessingService:
     
     error_code = 255 # default error code
     
-    def __init__(self, type, licence_plate, axle_count, height, length, endian):
+    def __init__(self, type=None, licence_plate=None, axle_count=None, height=None, length=None, endian=None):
         self.type = type
         self.licence_plate = licence_plate
         self.axle_count = axle_count
