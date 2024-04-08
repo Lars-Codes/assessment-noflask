@@ -1,4 +1,6 @@
 import threading
+from concurrent.futures import ThreadPoolExecutor
+
 # configuration 
 from flask import Flask 
 # handles SQLAlchemy database migrations for Flask migrations using ALembic (database migration tool).
@@ -10,9 +12,12 @@ from models.db import db
 from models.vehicle import Vehicle
 from dotenv import load_dotenv
 
-
 app = Flask(__name__)
 app.config.from_object(__name__) # used to load configuration variables defined in pythn files 
+
+# Import socket utils after declaring app to avoid circular import errors 
+from networking.socket_utils import SocketUtils
+
 
 # load config variables from .env file for mySQL 
 load_dotenv()
@@ -27,14 +32,14 @@ db.init_app(app)
 # used for database migrations 
 migrate = Migrate(app, db)
 
-from networking.socket_utils import SocketUtils
-
 # Start the server
 server_address = ('localhost', 10000)
 
 # Create socket from the server address
 sock = SocketUtils.create_socket(server_address)
 
+workers = 100
+executor = ThreadPoolExecutor(max_workers=workers) # can handle 100 concurrent connections
 
 def handle_client(connection):
     try:
@@ -48,9 +53,13 @@ def handle_client(connection):
     finally:
         SocketUtils.close_connection(connection)
 
-# ...
+def accept_clients():
+    try:
+        while True:
+            connection, client_address = SocketUtils.accept_connection(sock)
+            executor.submit(handle_client, connection)
+    except Exception as e:
+        print(f"Error accepting clients: {e}")
 
-while True:
-    connection, client_address = SocketUtils.accept_connection(sock)
-    client_thread = threading.Thread(target=handle_client, args=(connection,))
-    client_thread.start()
+accept_thread = threading.Thread(target=accept_clients)
+accept_thread.start()
