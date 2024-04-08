@@ -17,8 +17,15 @@ class ProcessingService:
     
     error_code = 255 # default error code
     
-    def __init__(self):
+    def __init__(self, type, licence_plate, axle_count, height, length, endian):
+        self.type = type
+        self.licence_plate = licence_plate
+        self.axle_count = axle_count
+        self.height = height
+        self.length = length
+        self.endian = endian
         self.error_code = 255 # default error code
+        self.binary_data = bytes() # initializing empty byte array
     
     # Main processing functions to call other functions 
     def process(self, data, endian=None): 
