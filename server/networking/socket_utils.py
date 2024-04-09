@@ -1,7 +1,6 @@
 import socket 
 import sys 
 from service.processing import ProcessingService
-from app import app
 
 class SocketUtils: 
     
@@ -32,8 +31,7 @@ class SocketUtils:
             data = connection.recv(size) # receive data from client
             if(data!=b''):
                 print('received "%s"' % data, file=sys.stderr)
-                with(app.app_context()):
-                    res = ProcessingService().process(data, None) # Process data for insertion or retrieval
+                res = ProcessingService().process(data, None) # Process data for insertion or retrieval
                 return res # return data to client
         except Exception as e: 
             print(e)

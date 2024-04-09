@@ -1,22 +1,14 @@
-from models.db import db 
 from  service.error import ErrorService
-from sqlalchemy import Column, DateTime, func
-
-class Vehicle(db.Model):
+from database.temp_db import db
+class Vehicle:
     # Specify tablename for the model so Flask knows which local mySQL table to reference 
     __tablename__ = 'vehicles' 
     
-    id = db.Column(db.Integer, primary_key=True) # even though vehicle passage records are not unique, the vehicle id is unique, 
-    # i am including a PK for database management.
-    
-    # plate name must have a length of 10. Length verification is done prior to insertion. 
-    licence_plate = db.Column(db.String(10)) 
-    
-    # short int, 2 bytes of space 
-    axle_count = db.Column(db.SmallInteger) 
-    height = db.Column(db.SmallInteger)
-    
-    created_at = Column(DateTime, default=func.now()) # including timestamp to ensure retrieval of LATEST record
+    id = None 
+    license_plate = None
+    axle_count = None
+    height = None
+    created_at = None
         
     
     # constructor 
@@ -33,8 +25,7 @@ class Vehicle(db.Model):
     def insert(cls, licence_plate, axle_count, height, endian):
         try: 
             vehicle = cls(licence_plate.strip(), axle_count, height)
-            db.session.add(vehicle)
-            db.session.commit()
+            db.insertVehicle(vehicle)
             size = 1 
             return size.to_bytes(2, endian) + bytes([0x0]) # Response 0 for success
         except Exception as e: 
@@ -47,7 +38,9 @@ class Vehicle(db.Model):
         try: 
             # retrieve latest record based on timestap 
                 
-            vehicle = cls.query.filter_by(licence_plate=licence_plate).order_by(cls.created_at.desc()).first()
+            # vehicle = cls.query.filter_by(licence_plate=licence_plate).order_by(cls.created_at.desc()).first()
+            print(licence_plate)
+            vehicle = db.getVehicle(licence_plate)
             
             if vehicle is None: 
                 return ErrorService.packageErrorResponse(error_code=9, error="Vehicle not found".encode('utf-8'), endian=endian)
@@ -61,16 +54,6 @@ class Vehicle(db.Model):
             print(e)
             error_bytes = str(e).encode('utf-8') # encode error into bytes
             return ErrorService.packageErrorResponse(error_code=9, error=error_bytes, endian=endian)
-        
-    @classmethod 
-    def getAll(cls): 
-        try: 
-            vehicles = Vehicle.query.all()
-            return vehicles
-        except Exception as e: 
-            print(e)
-            return e
-
        
         
     
