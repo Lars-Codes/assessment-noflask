@@ -60,3 +60,4 @@ Use the dummy app.py file to send data to this server application. Comment/uncom
 
 
 
+# assessment-noflask
