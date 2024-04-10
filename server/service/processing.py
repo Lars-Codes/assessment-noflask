@@ -34,13 +34,13 @@ class ProcessingService:
             
             self.retrieve_data(data) # Store data and cast to bytes if not already bytes
             
-            request_type = self.getType() # process request type (third byte)
-
             if(self.type==2): 
                 self.error_code = 9 # set error code to 9 if request type is 2 (retrieve)
         
             length = self.processLength() # process length (first and second bytes) and detect endianness if not specified 
             
+            request_type = self.getType() # process request type (third byte)
+
             if(isinstance(length, bytes)): # if request type is an error message, return error message. 
                 return length
             
@@ -75,7 +75,7 @@ class ProcessingService:
     
     def getType(self): 
         # get type from binary data
-        request_type = int.from_bytes(self.binary_data[2:3]) # get the third byte for type.
+        request_type = int.from_bytes(self.binary_data[2:3], self.endian) # get the third byte for type.
         self.type = request_type
             
     def processLength(self): # Process specified length of data

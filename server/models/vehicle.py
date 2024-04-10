@@ -39,7 +39,7 @@ class Vehicle:
             # retrieve latest record based on timestap 
                 
             # vehicle = cls.query.filter_by(licence_plate=licence_plate).order_by(cls.created_at.desc()).first()
-            print(licence_plate)
+            # print(licence_plate)
             vehicle = db.getVehicle(licence_plate)
             
             if vehicle is None: 
