@@ -8,7 +8,7 @@ class db:
         for vehicle in reversed(cls.data):
             if vehicle.licence_plate == license_plate:
                 return vehicle
-    
+        return None
     
     @classmethod
     def insertVehicle(cls, vehicle): 
